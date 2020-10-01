@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CONTACT FORM AND SEARCH SAMPLE</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+    <style>
+        .autocomplete {
+            position: relative;
+            display: inline-block
+        }
+        
+        .autocomplete input {
+            border: 1px solid #ddd;
+            padding: 10px 20px;
+            border-radius: 20px;
+            width: 150px;
+            font-size: 0.9em;
+            box-shadow: 0 1px 0px rgba(255, 255, 255, 0.25)
+        }
+        
+        input[type="submit"] {
+            cursor: pointer;
+            background-color: #b9b9b9
+        }
+        
+        input:focus::placeholder {
+            color: transparent
+        }
+        
+        .autocomplete-items {
+            position: absolute;
+            left: 0;
+            top: 38px;
+            font-size: 0.9em;
+            line-height: 1.5;
+            width: 100%
+        }
+        
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: white;
+            border: 1px solid #ddd
+        }
+        
+        .autocomplete-items div:hover,
+        .autocomplete-active {
+            background-color: #c35 !important;
+            color: white
+        }
+    </style>
+    <script src="wasm_exec.js"></script>
+    <script>
+        const go = new Go();
+        WebAssembly.instantiateStreaming(fetch("tiny.wasm"), go.importObject).then((result) => {
+            go.run(result.instance);
+        });
+    </script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LfYxssZAAAAAAaw42cferHaLCTdvInugrdvHq11"></script>
+    <script type="text/javascript">
+        // And afterwards we can use all the functionality defined in wasm.
+        function doSearch() {
+            let value = document.getElementById("tinysearch").value;
+
+            const arr = search(value);
+            let list = document.getElementById("tinysearchautocomplete-list");
+            list.innerHTML = "";
+
+            for (i = 0; i < arr.length; i++) {
+                var div = document.createElement("div");
+
+                let elem = JSON.parse(arr[i]);
+                let elemlink = document.createElement('a');
+                elemlink.innerHTML = elem.name;
+                elemlink.setAttribute('href', elem.url);
+                div.appendChild(elemlink);
+
+                list.appendChild(div);
+            }
+            let body = document.getElementsByTagName("body")[0];
+
+            body.addEventListener("click", function() {
+                list.innerHTML = "";
+            }, false);
+            list.addEventListener("click", function(ev) {
+                ev.stopPropagation(); //this is important! If removed, you'll get both alerts
+            }, false);
+        }
+    </script>
+    <script type="text/javascript">
+        function submitToAPI(e) {
+            e.preventDefault();
+            grecaptcha.ready(function() {
+                grecaptcha.execute('6LfYxssZAAAAAAaw42cferHaLCTdvInugrdvHq11', {
+                    action: 'submit'
+                }).then(function(token) { // Add your logic to submit to your backend server here. var URL =
+                    "https://llrskpfagi.execute-api.us-east-1.amazonaws.com/stage/contact";
+                    var Namere = /[A-Za-z]{1}[A-Za-z]/;
+                    if (!Namere.test(jQuery("#name-input").val())) {
+                        alert("Name can not less than 2 char");
+                        return;
+                    }
+                    if (jQuery("#email-input").val() == "") {
+                        alert("Please enter your email id");
+                        return;
+                    }
+                    var reeamil = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,6})?$/;
+                    if (!reeamil.test(jQuery("#email-input").val())) {
+                        alert("Please enter valid email address");
+                        return;
+                    }
+                    var name = jQuery("#name-input").val();
+                    var
+                        email = jQuery("#email-input").val();
+                    var subject = jQuery("#subject-input").val();
+                    var message = jQuery("#description-input").val();
+                    var data = {
+                        name: name,
+                        email: email,
+                        subject: subject,
+                        message: message
+                    };
+                    jQuery.ajax({
+                        type: "POST",
+                        url: "https://llrskpfagi.execute-api.us-east-1.amazonaws.com/stage/contact",
+                        dataType: "json",
+                        crossDomain: "true",
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify(data),
+                        success: function() { // clear form and show a success message alert("Successfull"); document.getElementById("contact-form").reset();
+                            location.reload();
+                        },
+                        error: function() { // show an error message 
+                            alert("UnSuccessfull");
+                        }
+                    });
+                });
+            });
+        }
+    </script>
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark"> <a class="navbar-brand" href="#" data-abc="true">Contact Form and Search Test</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation"> 
+            <span class="navbar-toggler-icon"></span> 
+        </button>
+        <div class="collapse navbar-collapse" id="navbarColor02">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#" data-abc="true">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item"> <a class="nav-link" href="#" data-abc="true">Contact</a> </li>
+                <li class="nav-item"> <a class="nav-link" href="#" data-abc="true">Pricing</a> </li>
+                <li class="nav-item"> <a class="nav-link" href="#" data-abc="true">Social</a> </li>
+            </ul>
+            <form id="searchbox" autocomplete="off">
+                <div class="autocomplete">
+                    <input id="tinysearch" type="text" aria-label="Search through articles" placeholder="🔍 Search" onkeyup="doSearch()">
+                    <div id="tinysearchautocomplete-list" class="autocomplete-items"></div>
+                </div>
+            </form>
+        </div>
+    </nav>
+    <br>
+    <div class="container">
+        <div class="column">
+            <form id="contact-form" method="post">
+                <div class="form-group">
+                    <label> Your Name (required):</label>
+                    <input type="text" id="name-input" value="" class="form-control" size="40" aria-required="true" aria-invalid="false" />
+                </div>
+                <div class="form-group">
+                    <label> Your Email (required):</label>
+                    <input type="email" id="email-input" value="" class="form-control" aria-required="true" aria-invalid="false" />
+                </div>
+                <div class="form-group">
+                    <label> Subject:</label>
+                    <input type="email" id="subject-input" value="" class="form-control" aria-invalid="false" />
+                </div>
+                <div class="form-group">
+                    <label> How can we help you?</label>
+                    <textarea id="description-input" placeholder="Enter your message…" class="form-control" cols="40" rows="10" aria-invalid="false"></textarea><br/>
+                </div>
+                <button type="submit" class="g-recaptcha btn btn-primary" data-sitekey="6Lcbx8sZAAAAAMmjOPPMSVhrJt4QU66L0RnIrzv3" onClick="submitToAPI(event)">Submit</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>
