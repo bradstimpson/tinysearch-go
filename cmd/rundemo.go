@@ -24,7 +24,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Port int
+var p int
+var g bool
 
 // rundemoCmd represents the rundemo command
 var rundemoCmd = &cobra.Command{
@@ -35,12 +36,13 @@ var rundemoCmd = &cobra.Command{
 		if err != nil {
 			log.Error(err)
 		}
-		log.Infof("Running the dev server port: %v for the demo with directory %v", Port, path+"/assets")
-		server.Run(":"+strconv.Itoa(Port), path+"/assets")
+		log.Infof("Running the dev server port: %v for the demo with directory %v", p, path+"/assets")
+		server.Run(":"+strconv.Itoa(p), g, path+"/assets")
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(rundemoCmd)
-	rundemoCmd.PersistentFlags().IntVarP(&Port, "port", "p", 9090, "dev server port")
+	rundemoCmd.PersistentFlags().IntVarP(&p, "port", "p", 9090, "dev server port")
+	rundemoCmd.PersistentFlags().BoolVarP(&g, "gzip", "g", false, "enable gzip compression")
 }

@@ -16,6 +16,8 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
+	"compress/gzip"
 	"tinysearch/cmd/persister"
 
 	log "github.com/sirupsen/logrus"
@@ -43,7 +45,10 @@ func init() {
 	saveCmd := NewSaveCmd()
 	saveCmd.Flags().BoolVarP(&gz, "gzip", "z", false, "Enable gzip on the dictionary binary")
 	rootCmd.AddCommand(saveCmd)
+}
 
+func SetGzipFlag() {
+	gz = true
 }
 
 func Save(cmd *cobra.Command, args []string) {
@@ -64,6 +69,19 @@ func Save(cmd *cobra.Command, args []string) {
 	err := per.LoadBIN(finalin, &data)
 	if err != nil {
 		log.Errorf("error loading binary gob file: %v", err)
+	}
+
+	var buf bytes.Buffer
+	if gz {
+		z := gzip.NewWriter(&buf)
+		bw, err := z.Write(data)
+		if err != nil {
+			log.Errorf("error compressing data: %v", err)
+		}
+		log.Debugf("compressed %d bytes to data variable", bw)
+		z.Flush()
+		z.Close()
+		data = buf.Bytes()
 	}
 
 	err = per.SaveGO(finalout, &data)

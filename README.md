@@ -130,6 +130,17 @@ Let's try optimizations.
 
 Finally we optimize by trying flag optimizations, general build tweaks, and/or replacing the main compiler with TinyGo.  The goal is to get the final tinysearch.wasm as small as possible.  The rust equivalent is 121kB or 51kB gzipped.  The optimizations are flagged in the build stage.
 
+### Gzip Implementation
+
+Implementing gzip content encoding for the server shrunk the tiny.wasm to 963KB (from 3.3MB) another 71% reduction in filesize.  To test for the right encoding:
+
+```bash
+go run main.go rundemo -g -p 8080
+curl -v -sH "Accept-Encoding:gzip" localhost:8080/ | gunzip -
+```
+
+Next enabling gzip compression on the building of the index.go file reduced it from 485KB to 298KB.  With the layering on of the gzip compression in the server, the new file size is 985KB.  Not a massize savings overall but the hope is this will have a big impact the smaller we go.
+
 ## Release Approach
 
 Using `github.com/nwillc/gorelease` we update the .version file with our target semver and then run `gorelease`.  This creates a version.go file and will automatically tag and push to github.

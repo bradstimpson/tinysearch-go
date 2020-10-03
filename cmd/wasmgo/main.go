@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -81,8 +82,19 @@ func main() {
 func buildIndex() error {
 
 	var ix Dictionary
+	// var buf bytes.Buffer
 	r := bytes.NewReader(Index)
-	err := gob.NewDecoder(r).Decode(&ix)
+	// fmt.Println(r)
+
+	gr, err := gzip.NewReader(r)
+
+	// fmt.Println(gr)
+	if err != nil {
+		return err
+	}
+	err = gob.NewDecoder(gr).Decode(&ix)
+
+	// fmt.Println(ix.F)
 	if err != nil {
 		return err
 	}

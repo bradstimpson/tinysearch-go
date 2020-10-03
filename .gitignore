@@ -17,3 +17,9 @@ vendor/
 .DS_Store
 coverage/
 
+# Build files
+corpus.json
+index.bin
+tiny.wasm
+wasm_exec.js
+

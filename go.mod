@@ -3,6 +3,7 @@ module tinysearch
 go 1.15
 
 require (
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/dgryski/go-metro v0.0.0-20200812162917-85c65e2d0165 // indirect
 	github.com/kljensen/snowball v0.6.0
 	github.com/mitchellh/go-homedir v1.1.0

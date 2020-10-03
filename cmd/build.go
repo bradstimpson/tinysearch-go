@@ -82,10 +82,10 @@ func Build(cmd *cobra.Command, args []string) {
 		log.Errorf("error moving compiled file: %v", err.Error())
 	}
 
-	c = exec.Command("bash", "-c", "rm -rf index.go")
-	c.Dir = dir + "/wasmgo"
-	if err := c.Run(); err != nil {
-		log.Errorf("error moving compiled file: %v", err.Error())
-	}
+	// c = exec.Command("bash", "-c", "rm -rf index.go")
+	// c.Dir = dir + "/wasmgo"
+	// if err := c.Run(); err != nil {
+	// 	log.Errorf("error moving compiled file: %v", err.Error())
+	// }
 
 }

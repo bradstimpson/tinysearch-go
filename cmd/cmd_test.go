@@ -18,6 +18,7 @@ func TestParseCmd(t *testing.T) {
 }
 
 func TestSaveCmd(t *testing.T) {
+	cmd.SetGzipFlag()
 	cmd.Save(&cobra.Command{}, []string{"../build/index.bin", "../build/index.go"})
 }
 
