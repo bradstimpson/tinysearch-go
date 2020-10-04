@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bufio"
 	"html"
 	"io"
 	"log"
@@ -8,14 +9,18 @@ import (
 	"regexp"
 	"strings"
 
+	strip "github.com/grokify/html-strip-tags-go"
 	"github.com/kljensen/snowball"
 	"github.com/ohler55/ojg/jp"
 	"github.com/ohler55/ojg/oj"
 	cuckoo "github.com/seiflotfy/cuckoofilter"
+	"github.com/thoas/go-funk"
 )
 
+var startWords = [...]string{"http", "src", "srcset", "style", "class", "href", "id", "sizes", "height", "width", "loading", "aria"}
+
 type Parser interface {
-	Parse(domain string) error
+	Parse(domain string, stem bool, rman bool, rmsw bool) error
 	Source(fileName string) error
 	Encode() ([][]byte, []string, []string)
 	GetSource() interface{}
@@ -32,7 +37,7 @@ func NewParser() Parser {
 	return &parser{}
 }
 
-func (p *parser) Parse(domain string) error {
+func (p *parser) Parse(domain string, stem bool, rman bool, rmsw bool) error {
 
 	titlePath, err1 := jp.ParseString("[*].title")
 	slugPath, err2 := jp.ParseString("[*].slug")
@@ -44,12 +49,6 @@ func (p *parser) Parse(domain string) error {
 	slugs := slugPath.Get(p.source)
 	contents := contentPath.Get(p.source)
 
-	// Make a Regex to say we only want letters and numbers
-	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
-	if err != nil {
-		log.Fatalf("error with regular expression step removing unneeded characters: %v", err)
-	}
-
 	for it, vt := range titles {
 
 		// string into an array of words
@@ -57,29 +56,55 @@ func (p *parser) Parse(domain string) error {
 		fc := strings.Fields(contents[it].(string))
 
 		var words []string
-		// iterate over all the titles
+
+		// iterate over all the title content
 		for _, vs := range ft {
-			ps := reg.ReplaceAllString(html.UnescapeString(vs), "")
-			stemmed, err := snowball.Stem(ps, "english", true)
-			if err == nil {
-				words = append(words, stemmed)
-			} else {
-				log.Fatalf("error unescaping and stemming titles: %v", err)
-				return err
+			if !hasStartWord(vs) {
+				word := stripAlphaAndUnescape(stripHTMLTags(vs))
+
+				// fmt.Printf("the word being analyzed: %v\n", word)
+
+				if yes, found := hasMultipleWords(word); yes {
+					for _, v := range found {
+						// fmt.Printf("analyze word: %v\n", v)
+						checkStemAndAdd(v, &words)
+					}
+				} else {
+					checkStemAndAdd(word, &words)
+				}
 			}
 		}
+
 		// iterate over all the content
 		for _, vs := range fc {
-			ps := reg.ReplaceAllString(html.UnescapeString(vs), "")
-			stemmed, err := snowball.Stem(ps, "english", true)
-			if err == nil {
-				words = append(words, stemmed)
-			} else {
-				log.Fatalf("error unescaping and stemming titles: %v", err)
-				return err
+			// fmt.Printf("input word being analyzed: %v\n", vs)
+
+			// 1. check any of the words starting with target start words
+			// 2. strip any html tags from the word
+			// 3. strip alpha numerics and unescape (if on)
+			// 4. check if the word is multiple words (if multiple repeat below for each)
+			// 5. check if the word is a stopword (if on)
+			// 6. stem the word (if on)
+			// 7. finally, add the word
+
+			if !hasStartWord(vs) {
+				word := stripAlphaAndUnescape(stripHTMLTags(vs))
+
+				// fmt.Printf("the word being analyzed: %v\n", word)
+
+				if yes, found := hasMultipleWords(word); yes {
+					for _, v := range found {
+						// fmt.Printf("analyze word: %v\n", v)
+						checkStemAndAdd(v, &words)
+					}
+				} else {
+					checkStemAndAdd(word, &words)
+				}
 			}
 		}
-		// fmt.Println(sTitles)
+		// fmt.Printf("before funk: %v\n", len(words))
+		words = funk.UniqString(words) //use funk magic to remove duplicates
+		// fmt.Printf("after funk: %v\n", len(words))
 		cf := cuckoo.NewFilter(uint(len(words)))
 		for _, value := range words {
 			cf.InsertUnique([]byte(value))
@@ -134,4 +159,74 @@ func (p *parser) Encode() ([][]byte, []string, []string) {
 		en = append(en, p.names[i])
 	}
 	return ef, eu, en
+}
+
+func checkStemAndAdd(word string, words *[]string) {
+	if ok, _ := isStopword(strings.TrimSpace(word)); !ok {
+		// fmt.Printf("not a stopword, adding: %v\n", word)
+		*words = append(*words, stemWord(word))
+	}
+}
+
+func stripHTMLTags(word string) string {
+	return strip.StripTags(word)
+}
+
+func stripAlphaAndUnescape(word string) string {
+	reg, _ := regexp.Compile("[^'a-zA-Z0-9]+")
+	return reg.ReplaceAllString(html.UnescapeString(word), " ")
+}
+
+func stemWord(word string) string {
+	out, err := snowball.Stem(word, "english", true)
+	if err != nil {
+		log.Fatalf("error unescaping and stemming titles: %v", err)
+	}
+	return out
+}
+
+func hasStartWord(word string) bool {
+	for _, v := range startWords {
+		if strings.HasPrefix(word, v) {
+			return true
+		}
+	}
+	return false
+}
+
+func hasMultipleWords(word string) (bool, []string) {
+	s := strings.Split(strings.TrimSpace(word), " ")
+	if len(s) > 1 {
+		return true, s
+	}
+	return false, nil
+}
+
+func isStopword(word string) (bool, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return false, err
+	}
+
+	// small fix for running tests and normal mode
+	if strings.HasSuffix(dir, "cmd") {
+		dir = dir + "/parser"
+	}
+
+	f, err := os.Open(dir + "/stopwords")
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		if scanner.Text() == strings.ToLower(word) {
+			return true, nil
+		}
+		if err := scanner.Err(); err != nil {
+			return false, err
+		}
+	}
+	return false, nil
 }

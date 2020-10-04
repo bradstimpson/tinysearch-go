@@ -132,7 +132,7 @@ Finally we optimize by trying flag optimizations, general build tweaks, and/or r
 
 ### Gzip Implementation
 
-Implementing gzip content encoding for the server shrunk the tiny.wasm to 963KB (from 3.3MB) another 71% reduction in filesize.  To test for the right encoding:
+Implementing gzip content encoding for the server shrunk the tiny.wasm to 993KB (from 3.3MB) another 71% reduction in filesize.  To test for the right encoding:
 
 ```bash
 go run main.go rundemo -g -p 8080
@@ -140,6 +140,10 @@ curl -v -sH "Accept-Encoding:gzip" localhost:8080/ | gunzip -
 ```
 
 Next enabling gzip compression on the building of the index.go file reduced it from 485KB to 298KB.  With the layering on of the gzip compression in the server, the new file size is 985KB.  Not a massize savings overall but the hope is this will have a big impact the smaller we go.
+
+### Stopwords, Remove Alpha-numerics and Stemming
+
+With these optimizations the size of the index.bin was reduced from 140KB to 98KB.  The final tiny.wasm is 972KB
 
 ## Release Approach
 

@@ -24,8 +24,9 @@ import (
 )
 
 var (
-	sw  bool   = false
-	an  bool   = false
+	sw  bool   = true
+	an  bool   = true
+	st  bool   = true
 	in  string = "build/corpus.json"
 	out string = "build/index.bin"
 )
@@ -48,9 +49,22 @@ func UpdateRootDomain(domain string) {
 
 func init() {
 	parseCmd := NewParseCmd()
-	parseCmd.Flags().BoolVarP(&sw, "stopwords", "w", false, "Remove stopwords from dictionary")
-	parseCmd.Flags().BoolVarP(&an, "alphanumerics", "j", false, "Remove alphanumerics from dictionary")
+	parseCmd.Flags().BoolVarP(&sw, "stopwords", "w", true, "Remove stopwords from dictionary (default enabled)")
+	parseCmd.Flags().BoolVarP(&an, "alphanumerics", "j", true, "Remove alphanumerics from dictionary (default enabled)")
+	parseCmd.Flags().BoolVarP(&st, "stemming", "m", true, "Stem all the words to their roots (default enabled)")
 	rootCmd.AddCommand(parseCmd)
+}
+
+func SetSWFlag() {
+	sw = false
+}
+
+func SetANFlag() {
+	an = false
+}
+
+func SetSTFlag() {
+	st = false
 }
 
 func Parse(cmd *cobra.Command, args []string) {
@@ -73,7 +87,7 @@ func Parse(cmd *cobra.Command, args []string) {
 		log.Errorf("error parsing corpus.json: %v", err)
 	}
 
-	err = par.Parse(RootDomain)
+	err = par.Parse(RootDomain, st, an, sw)
 	if err != nil {
 		log.Errorf("error parsing to final dictionary: %v", err)
 	}

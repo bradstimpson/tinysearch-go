@@ -13,6 +13,7 @@ func TestDownloadCmd(t *testing.T) {
 }
 
 func TestParseCmd(t *testing.T) {
+	cmd.SetSTFlag()
 	cmd.UpdateRootDomain("http://example.test")
 	cmd.Parse(&cobra.Command{}, []string{"../build/corpus.json", "../build/index.bin"})
 }
