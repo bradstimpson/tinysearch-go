@@ -24,6 +24,4 @@ tiny.wasm
 wasm_exec.js
 wasm_exec_tiny.js
 
-# Versioning
-.version
 
