@@ -70,7 +70,13 @@ func Build(cmd *cobra.Command, args []string) {
 		log.Errorf("error moving compiled file: %v", err.Error())
 	}
 
-	c = exec.Command("bash", "-c", "GOOS=js GOARCH=wasm go build -o "+outfile)
+	// c = exec.Command("bash", "-c", `GOOS=js GOARCH=wasm go build  -ldflags="-s -w" -o `+outfile)
+	// c.Dir = dir + "/wasmgo"
+	// if err := c.Run(); err != nil {
+	// 	log.Errorf("error running go compiler: %v", err.Error())
+	// }
+
+	c = exec.Command("bash", "-c", `tinygo build -o `+outfile+` -target wasm main.go`)
 	c.Dir = dir + "/wasmgo"
 	if err := c.Run(); err != nil {
 		log.Errorf("error running go compiler: %v", err.Error())
@@ -82,10 +88,10 @@ func Build(cmd *cobra.Command, args []string) {
 		log.Errorf("error moving compiled file: %v", err.Error())
 	}
 
-	c = exec.Command("bash", "-c", "rm -rf index.go")
-	c.Dir = dir + "/wasmgo"
-	if err := c.Run(); err != nil {
-		log.Errorf("error moving compiled file: %v", err.Error())
-	}
+	// c = exec.Command("bash", "-c", "rm -rf index.go")
+	// c.Dir = dir + "/wasmgo"
+	// if err := c.Run(); err != nil {
+	// 	log.Errorf("error moving compiled file: %v", err.Error())
+	// }
 
 }

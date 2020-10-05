@@ -19,6 +19,12 @@ import (
 
 var startWords = [...]string{"http", "src", "srcset", "style", "class", "href", "id", "sizes", "height", "width", "loading", "aria"}
 
+var (
+	Stem bool = true
+	Rmsw bool = true
+	Rman bool = true
+)
+
 type Parser interface {
 	Parse(domain string, stem bool, rman bool, rmsw bool) error
 	Source(fileName string) error
@@ -37,7 +43,16 @@ func NewParser() Parser {
 	return &parser{}
 }
 
+// Main parsing algorithm for optimizing word selection
+// 1. check any of the words starting with target start words
+// 2. strip any html tags from the word
+// 3. strip alpha numerics and unescape (if on)
+// 4. check if the word is multiple words (if multiple repeat below for each)
+// 5. check if the word is a stopword (if on)
+// 6. stem the word (if on)
+// 7. finally, add the word
 func (p *parser) Parse(domain string, stem bool, rman bool, rmsw bool) error {
+	Stem, Rman, Rmsw = stem, rman, rmsw
 
 	titlePath, err1 := jp.ParseString("[*].title")
 	slugPath, err2 := jp.ParseString("[*].slug")
@@ -62,11 +77,8 @@ func (p *parser) Parse(domain string, stem bool, rman bool, rmsw bool) error {
 			if !hasStartWord(vs) {
 				word := stripAlphaAndUnescape(stripHTMLTags(vs))
 
-				// fmt.Printf("the word being analyzed: %v\n", word)
-
 				if yes, found := hasMultipleWords(word); yes {
 					for _, v := range found {
-						// fmt.Printf("analyze word: %v\n", v)
 						checkStemAndAdd(v, &words)
 					}
 				} else {
@@ -77,24 +89,11 @@ func (p *parser) Parse(domain string, stem bool, rman bool, rmsw bool) error {
 
 		// iterate over all the content
 		for _, vs := range fc {
-			// fmt.Printf("input word being analyzed: %v\n", vs)
-
-			// 1. check any of the words starting with target start words
-			// 2. strip any html tags from the word
-			// 3. strip alpha numerics and unescape (if on)
-			// 4. check if the word is multiple words (if multiple repeat below for each)
-			// 5. check if the word is a stopword (if on)
-			// 6. stem the word (if on)
-			// 7. finally, add the word
-
 			if !hasStartWord(vs) {
 				word := stripAlphaAndUnescape(stripHTMLTags(vs))
 
-				// fmt.Printf("the word being analyzed: %v\n", word)
-
 				if yes, found := hasMultipleWords(word); yes {
 					for _, v := range found {
-						// fmt.Printf("analyze word: %v\n", v)
 						checkStemAndAdd(v, &words)
 					}
 				} else {
@@ -102,9 +101,9 @@ func (p *parser) Parse(domain string, stem bool, rman bool, rmsw bool) error {
 				}
 			}
 		}
-		// fmt.Printf("before funk: %v\n", len(words))
+
 		words = funk.UniqString(words) //use funk magic to remove duplicates
-		// fmt.Printf("after funk: %v\n", len(words))
+
 		cf := cuckoo.NewFilter(uint(len(words)))
 		for _, value := range words {
 			cf.InsertUnique([]byte(value))
@@ -173,16 +172,24 @@ func stripHTMLTags(word string) string {
 }
 
 func stripAlphaAndUnescape(word string) string {
+	if !Rman {
+		return word
+	}
 	reg, _ := regexp.Compile("[^'a-zA-Z0-9]+")
 	return reg.ReplaceAllString(html.UnescapeString(word), " ")
 }
 
 func stemWord(word string) string {
+	if !Stem {
+		return word
+	}
+
 	out, err := snowball.Stem(word, "english", true)
 	if err != nil {
 		log.Fatalf("error unescaping and stemming titles: %v", err)
 	}
 	return out
+
 }
 
 func hasStartWord(word string) bool {
@@ -203,6 +210,10 @@ func hasMultipleWords(word string) (bool, []string) {
 }
 
 func isStopword(word string) (bool, error) {
+	if !Rmsw {
+		return true, nil
+	}
+
 	dir, err := os.Getwd()
 	if err != nil {
 		return false, err

@@ -1,42 +1,8 @@
 # Tinysearch-Go
 
-## Extract Data from Wordpress API
+This is the story behind the creation of Tinysearch-go.  This application was created to build a tinysearch, inspired from endler.dev, from a wordpress system converted into a static site.  Over the course of several weeks, I did many passes over different ideas to build the tinysearch with a goal of getting the binary size down into the same range as endler.dev (150KB).
 
-```bash
-curl http://192.168.0.28:8009?rest_route=/wp/v2/posts\&page\=2\&per_page\=90 | jq '.[] |{title:.title.rendered,slug:.slug,content:.content.rendered}'
-```
-
-this put the data in a 'near' JSON form - I simply had to go through it and add commas plus array.
-
-The resulting corpus file is 2.1MB.
-
-## Copy over Javascript Glue Code
-
-Run the following from within the project directory.
-
-```bash
-cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" assets/
-```
-
-## Setup Structure
-
-* assets --> everything served
-* cmd --> the go code
-* -server --> simple dev server
-* -wasm --> code being compiled to wasm
-* --fixtures --> the index file
-
-## Webassembly
-
-Compile the wasm script
-
-```bash
-GOOS=js GOARCH=wasm go build -o  ../../assets/json.wasm
-```
-
-this outputs the wasm file that needs to be loaded by javascript
-
-## First Pass
+## The First Pass - Crude Application (check out branch pass1)
 
 The first pass at building a tiny search in golang consisted of:
 
@@ -60,7 +26,37 @@ An 11.8MB wasm file certainly doesn't constitute as a 'tiny search'.  We can do 
 
 Let's try separating the dictionary building from the wasm build.
 
-## Second Pass
+### Extract Data from Wordpress API
+
+The first step is to extract the data we want to use from the Wordpress JSON API:
+
+```bash
+curl http://192.168.0.28:8009?rest_route=/wp/v2/posts\&page\=2\&per_page\=90 | jq '.[] |{title:.title.rendered,slug:.slug,content:.content.rendered}'
+```
+
+this put the data in a 'near' JSON form - I simply had to go through it and add commas plus array.
+
+The resulting corpus file is 2.1MB.
+
+### Copy over Javascript Glue Code
+
+Run the following from within the project directory.
+
+```bash
+cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" assets/
+```
+
+### Webassembly
+
+Compile the wasm script
+
+```bash
+GOOS=js GOARCH=wasm go build -o  ../../assets/json.wasm
+```
+
+this outputs the wasm file that needs to be loaded by javascript
+
+## Second Pass (check out first master push)
 
 In this refactoring we will simplify the directory structure, adopt the use of viper and cobra to build a functional parsing tool and finally output the built dictionary into a separate file that can be packed into the final wasm without bundling the large unparsed file.  We will also update terminology/filenames to make usage easier to understand.
 
@@ -143,7 +139,95 @@ Next enabling gzip compression on the building of the index.go file reduced it f
 
 ### Stopwords, Remove Alpha-numerics and Stemming
 
-With these optimizations the size of the index.bin was reduced from 140KB to 98KB.  The final tiny.wasm is 972KB
+With these optimizations the size of the index.bin was reduced from 140KB to 98KB.  The final tiny.wasm is 972KB.  Further clean up of the words in the dictionary, including removing duplicates and unecessary words such as HTML tags reduced the index.bin to 35KB on an original corpus.json of 1.7MB.  The tiny.wasm is now 944KB on a 3.2MB total size.  Disabling Stemming leads to a slightly larger index.bin (42KB) but leads to a better search experience.  Flag leaves the decision to the user to enable/disable.
+
+### Binary optimizations
+
+Final step is to optimize the binary by looking at flags, line number removals and other wasm tweaks.  By enabling `-ldflags="-s -w"` we are able to reduce the binary size by ~100KB (934KB after gzip compression):
+
+```bash
+-rwxr-xr-x 1 brad staff 3199938 Oct  4 13:40:29 2020 assets/tiny.wasm
+```
+
+This did net an improvement but still doesn't get us to the realm of tinysearch in rust (~150KB pre gzip).  I looked into other techniques to reduce binary size but none of them (e.g. stripping line numbers) could net us the binary size reduction needed.  So to get there our only choice is to move to the tinygo compiler.
+
+### Tinygo
+
+First round with tinygo - I used `encoding/gob` to encode the structures to binary and then embed into the wasm file. Installed tinygo for mac via brew and used the following to build the wasm file:
+
+```bash
+tinygo build -o assets/tiny.wasm -target wasm main.go
+```
+
+I discovered that gob is not supported in tinygo (as of 0.15.0) as many of the reflect features are not implemented.  I looked around to see if I can find another serialization technique that can decode without reflection - so far no luck.  To get there I decided to make my own serializer that optimizes for fast decode time and smaller output format (while only using reflection on the encoder side).  My inspiration is coming from 3 libraries: a) gotiny, b) sereal, c) msgpack.  But more importantly, I aimed for a simple encoder/decoder.
+
+#### Terial Encoding
+
+I call it Terial for tiny serial with the design philosphy to keep it simple and tiny.  We obviously are not 'complete' in order to keep it compact - many variable types are missing.
+
+#### General Points
+
+Strictness = must detect invalid documents without crash
+Big Endian = as this protocol is intended to serialize data for transfer via a network, therefore we are using network order
+IEEE Floats = floating points are in the IEEE format
+
+#### Header
+
+To encode the data without reflection we need to add relevant data in a header to infer what is encoded.  Using a variation of the Sereal header format combined with ASN.1 TLV + EOC data encoding.
+
+```bash
+Header = <encoding-format><version><num-of-fields><user-meta-data>
+```
+
+The header is always a fixed size and is never compressed.
+
+* encoding-format: this is a string that identifies the type of encoding-format.  Allows for a broader future change similar to Sereal with its magic string.  
+* version: 0 indicates without compression, 1 with gzip compression, 2 with zstd compression
+* num-of-fields: X indicates how many fields are encoded in the body from the originating struct
+* user-meta-data: general meta data that the user wants to send along - in the case of tinysearch we send along the total number of elements in the arrays (as each array is equal size)
+
+#### Body
+
+Each variable encoded in the body is in the ASN.1 TLV+EOC format and it is assumed that whatever goes into the body is a struct format:
+
+```bash
+Body Variable = <type-code(8bit)><length (int64)><value><end-of-content-octet (8bit)>
+```
+
+For the type-codes, we adopt a similar approach to Msgpack, the length is byteslice length, the value is the actual data to be encoded and the end-of-content octet.  Here are the codes used:
+
+EOC Code = 0xFF
+Nil Code = 0xc0
+False Code = 0xc2
+True  Code = 0xc3
+
+Bool Code = 0xc4
+Float64  Code = 0xc5
+Str Code = 0xc6
+
+Uint8 Code = 0xd0
+[]Uint8 Code = 0xd1
+Uint64 Code = 0xd2
+[]Uint64 Code = 0xd3
+Int64 Code = 0xd4
+[]Int64 Code = 0xd5
+Byte Code = 0xd6
+[]Byte Code = 0xd7
+
+To encode the string, Hello World!: `<0xcc><0x0C><0x48 0x70 ...><0xFF>` this is converted to a `[]byte` which is then converted to a `[]Uint8`.
+
+## Final Structure
+
+* assets --> everything served
+* build --> output files from build steps
+* cmd --> the go code
+* -downloader --> extract information from wordpress, jekyll (TODO), hugo (TODO)
+* -parser --> parse corpus.json into index.bin
+* -persister --> marshal and write to different formats
+* -serializer --> the terial encoder/decoder
+* -server --> simple dev server
+* -wasmgo --> code being compiled to wasm with native golang
+* -fixtures --> the test files
 
 ## Release Approach
 

@@ -55,15 +55,15 @@ func init() {
 	rootCmd.AddCommand(parseCmd)
 }
 
-func SetSWFlag() {
+func DisableStopwords() {
 	sw = false
 }
 
-func SetANFlag() {
+func DisableAlphaNumRemoval() {
 	an = false
 }
 
-func SetSTFlag() {
+func DisableStemming() {
 	st = false
 }
 

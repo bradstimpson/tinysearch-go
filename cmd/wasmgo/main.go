@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"syscall/js"
 
 	cuckoo "github.com/seiflotfy/cuckoofilter"
@@ -61,7 +62,7 @@ func jsonWrapper() js.Func {
 		}
 		searchTerm := args[0].String()
 		fmt.Printf("input %s\n", searchTerm)
-		urls, err := search(searchTerm, 5) //returns
+		urls, err := search(strings.ToLower(searchTerm), 5) //returns
 		if err != nil {
 			fmt.Printf("unable to find term", err)
 			return err.Error()
