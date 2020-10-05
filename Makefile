@@ -2,6 +2,9 @@
 test:
 	go test ./... -v -cover
 
+.PHONY: version
+version:
+	gorelease
 
 # MODULE   = $(shell env GO111MODULE=on $(GO) list -m)
 # DATE    ?= $(shell date +%FT%T%z)
