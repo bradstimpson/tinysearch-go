@@ -28,5 +28,6 @@ func TestBuildCmd(t *testing.T) {
 }
 
 func TestSearchCmd(t *testing.T) {
-	cmd.Search(&cobra.Command{}, []string{"NOP"})
+	cmd.DisableOutput()
+	cmd.Search(&cobra.Command{}, []string{"test", "../build/index.bin"})
 }

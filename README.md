@@ -176,12 +176,12 @@ IEEE Floats = floating points are in the IEEE format
 To encode the data without reflection we need to add relevant data in a header to infer what is encoded.  Using a variation of the Sereal header format combined with ASN.1 TLV + EOC data encoding.
 
 ```bash
-Header = <encoding-format><version><num-of-fields><user-meta-data>
+Header = <encoding-format (32bit)><version (8bit)><num-of-fields (8bit)><user-meta-data (64bit)>
 ```
 
-The header is always a fixed size and is never compressed.
+The header is always a fixed size (112bit) and is never compressed.
 
-* encoding-format: this is a string that identifies the type of encoding-format.  Allows for a broader future change similar to Sereal with its magic string.  
+* encoding-format: this is a string that identifies the type of encoding-format.  Allows for a broader future change similar to Sereal with its magic string.  (0x54455231 or TER1)
 * version: 0 indicates without compression, 1 with gzip compression, 2 with zstd compression
 * num-of-fields: X indicates how many fields are encoded in the body from the originating struct
 * user-meta-data: general meta data that the user wants to send along - in the case of tinysearch we send along the total number of elements in the arrays (as each array is equal size)
@@ -191,30 +191,30 @@ The header is always a fixed size and is never compressed.
 Each variable encoded in the body is in the ASN.1 TLV+EOC format and it is assumed that whatever goes into the body is a struct format:
 
 ```bash
-Body Variable = <type-code(8bit)><length (int64)><value><end-of-content-octet (8bit)>
+Body Variable = <type-code(8bit)><length (int64)><value><4 x end-of-content-octet (32bit)>
 ```
 
 For the type-codes, we adopt a similar approach to Msgpack, the length is byteslice length, the value is the actual data to be encoded and the end-of-content octet.  Here are the codes used:
 
-EOC Code = 0xFF
-Nil Code = 0xc0
-False Code = 0xc2
-True  Code = 0xc3
+| Name    |  Code |
+|:---------|:-----:|
+| EOC     |  0xff |
+| Nil     |  0xc0 |
+| False   |  0xc1 |
+| True    |  0xc2 |
+| Bool    |  0xc3 |
+| Float64 |  0xc4 |
+| String  |  0xc5 |
+| Uint8     |  0xd0 |
+| []Uint8     |  0xd1 |
+| Uint64   |  0xd2 |
+| []Uint64    |  0xd3 |
+| Int64    |  0xd4 |
+| []Int64 |  0xd5 |
+| Byte  |  0xd6 |
+| []Byte  |  0xd7 |
 
-Bool Code = 0xc4
-Float64  Code = 0xc5
-Str Code = 0xc6
-
-Uint8 Code = 0xd0
-[]Uint8 Code = 0xd1
-Uint64 Code = 0xd2
-[]Uint64 Code = 0xd3
-Int64 Code = 0xd4
-[]Int64 Code = 0xd5
-Byte Code = 0xd6
-[]Byte Code = 0xd7
-
-To encode the string, Hello World!: `<0xcc><0x0C><0x48 0x70 ...><0xFF>` this is converted to a `[]byte` which is then converted to a `[]Uint8`.
+To encode the string, Hello World!: `<0xcc><0x0C><0x48 0x70 ...><0xFFFFFFFF>` this is converted to a `[]byte` which is then converted to a `[]Uint8`.
 
 ## Final Structure
 
@@ -235,11 +235,11 @@ Using `github.com/nwillc/gorelease` we update the .version file with our target 
 
 ## Testing Approach
 
-go test ./... -cover
-go test ./... -coverprofile=coverage/c.out
-go tool cover -html=coverage/c.out
-go test -run ' '
-golangci-lint run
+* go test ./... -v -cover
+* go test ./... -coverprofile=coverage/c.out
+* go tool cover -html=coverage/c.out
+* go test -run ' '
+* golangci-lint run
 
 ## References
 

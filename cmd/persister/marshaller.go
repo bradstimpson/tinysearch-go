@@ -49,16 +49,6 @@ func unmarshalBIN(r io.Reader, v interface{}) error {
 		value.Set(reflect.Append(value, reflect.ValueOf(val)))
 	}
 
-	// value.SetLen(size)
-	// fmt.Println(value.Len())
-	// i := reflect.Copy(value, reflect.ValueOf(b.Bytes()))
-	// fmt.Println(i)
-	// field.Elem().Set(reflect.ValueOf(v))
-	// value = b.Bytes()
-	// fmt.Printf("%v", value)
-	// v = &data
-	// _, err := r.Read(v.([]byte))
-
 	return err
 }
 
@@ -121,23 +111,3 @@ func name(v interface{}) (bool, error) {
 		return false, errors.New("Unsupported type")
 	}
 }
-
-// f, err := os.OpenFile("../../build/index.bin", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-// if err != nil {
-// 	log.Fatal("Couldn't open file")
-// }
-// defer f.Close()
-// err = binary.Write(f, binary.BigEndian, uint64(len(filters)))
-// for i, _ := range filters {
-// 	var data = struct {
-// 		f uint64
-// 		u uint64
-// 		n uint64
-// 		i uint16
-// 	}{binary.BigEndian.Uint64(filters[i]), binary.BigEndian.Uint64([]byte(urls[i])), binary.BigEndian.Uint64([]byte(names[i])), uint16(i)}
-
-// 	err = binary.Write(f, binary.BigEndian, data)
-// }
-// if err != nil {
-// 	log.Fatal("Write failed")
-// }
