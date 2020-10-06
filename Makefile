@@ -11,42 +11,37 @@ VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null 
 BIN      = $(CURDIR)/bin
 M = $(shell printf "\033[34;1m▶\033[0m")
 ARGS = `arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${arg:-${1}}`
-
+TEST=$(shell git status --porcelain | wc -l | tr -d '[:space:]')
+	# ifneq (, 0)
+	# 	$(error )
+	# endif
 .PHONY: test
 test:
 	go test ./... -v -cover
 
 .PHONY: release
-release:
-
-	# @status=$$(git status --porcelain); \
-	# if test "x$${status}" = x; then \
-	# 	git branch -f deployment; \
-	# 	git push origin deployment; \
-	# else \
-	# 	echo Working directory is dirty >&2; \
-	# fi
-	ifneq ($(shell git status --porcelain | wc -l), 0)
-		$(error "There are uncomitted changes - must be clean before release")
-	endif
+release: ; $(info $(M) releasing…)	@ ## Releasing with version as arg (checks if repo clean)
+ifneq ($(TEST), 1)
+	$(error "There are uncomitted changes - must be clean before release")
+endif
 	@echo $(RUN_ARGS) > .version
-	# gorelease
+	gorelease
 
 
 # Misc
 
 .PHONY: clean
-clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything
+clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything in bin/ and tests/
 	@rm -rf $(BIN)
 	@rm -rf test/tests.* test/coverage.*
 
 .PHONY: help
-help:
+help: ; $(info $(M) This is what you can do with the Makefile…)	@ ## Helping you
 	@grep -hE '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-17s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: version
-version:
+version: ; @ ## Returns the version of the git repository 
 	@echo $(VERSION)
 
 # MODULE   = $(shell env GO111MODULE=on $(GO) list -m)
