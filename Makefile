@@ -21,7 +21,7 @@ test:
 
 .PHONY: release
 release: ; $(info $(M) releasing…)	@ ## Releasing with version as arg (checks if repo clean)
-ifneq ($(TEST), 1)
+ifneq ($(TEST), 0)
 	$(error "There are uncomitted changes - must be clean before release")
 endif
 	@echo $(RUN_ARGS) > .version
