@@ -65,8 +65,8 @@ func Save(cmd *cobra.Command, args []string) {
 		}
 	}
 	var data []byte
-	per := persister.NewPersistor()
-	err := per.LoadBIN(finalin, &data)
+	per := persister.NewPersistor(persister.BIN)
+	err := per.Load(finalin, &data)
 	if err != nil {
 		log.Errorf("error loading binary gob file: %v", err)
 	}
@@ -84,7 +84,8 @@ func Save(cmd *cobra.Command, args []string) {
 		data = buf.Bytes()
 	}
 
-	err = per.SaveGO(finalout, &data)
+	per = persister.NewPersistor(persister.GO)
+	err = per.Save(finalout, &data)
 	if err != nil {
 		log.Errorf("error saving final output go file: %v", err)
 	}

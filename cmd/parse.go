@@ -93,8 +93,8 @@ func Parse(cmd *cobra.Command, args []string) {
 	}
 
 	filters, urls, names := par.Encode()
-	per := persister.NewPersistor()
-	err = per.SaveGOB(out, struct {
+	per := persister.NewPersistor(persister.GOB)
+	err = per.Save(out, struct {
 		F [][]byte
 		U []string
 		N []string

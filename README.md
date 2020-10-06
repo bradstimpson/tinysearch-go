@@ -182,7 +182,7 @@ Header = <encoding-format (32bit)><version (8bit)><num-of-fields (8bit)><user-me
 The header is always a fixed size (112bit) and is never compressed.
 
 * encoding-format: this is a string that identifies the type of encoding-format.  Allows for a broader future change similar to Sereal with its magic string.  (0x54455231 or TER1)
-* version: 0 indicates without compression, 1 with gzip compression, 2 with zstd compression
+* version: 1 indicates without compression, 2 with gzip compression, 3 with zstd compression
 * num-of-fields: X indicates how many fields are encoded in the body from the originating struct
 * user-meta-data: general meta data that the user wants to send along - in the case of tinysearch we send along the total number of elements in the arrays (as each array is equal size)
 
@@ -231,13 +231,15 @@ To encode the string, Hello World!: `<0xcc><0x0C><0x48 0x70 ...><0xFFFFFFFF>` th
 
 ## Release Approach
 
-Using `github.com/nwillc/gorelease` we update the .version file with our target semver and then run `gorelease`.  This creates a version.go file and will automatically tag and push to github.
+Using `github.com/nwillc/gorelease` we update the .version file with our target semver and then run `gorelease`.  This creates a `gen/version.go` file and will automatically tag and push to github.
+
+To run this a convenient target is in the Makefile: `make release v0.2.2`.  The git repository needs to be clean prior to doing a release.
 
 ## Testing Approach
 
 * go test ./... -v -cover
-* go test ./... -coverprofile=coverage/c.out
-* go tool cover -html=coverage/c.out
+* go test ./... -coverprofile=test/coverage/c.out
+* go tool cover -html=test/coverage/c.out
 * go test -run ' '
 * golangci-lint run
 

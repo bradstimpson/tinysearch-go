@@ -1,8 +1,8 @@
-package serializer
+package terial
 
 type Code byte
 
-var (
+const (
 	EOC   Code = 0xFF
 	Nil   Code = 0xc0
 	False Code = 0xc2
@@ -20,4 +20,12 @@ var (
 	ArrayInt64  Code = 0xd5
 	Byte        Code = 0xd6
 	ArrayByte   Code = 0xd7
+)
+
+const EncFmtID uint32 = 0x54455231
+
+const (
+	V1 = 1 << iota
+	V2
+	V3
 )

@@ -79,8 +79,8 @@ func Search(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	np := persister.NewPersistor()
-	err := np.LoadGOB(gobFile, &data)
+	np := persister.NewPersistor(persister.GOB)
+	err := np.Load(gobFile, &data)
 	if err != nil {
 		log.Errorf("error loading gob file: %v", err)
 	}

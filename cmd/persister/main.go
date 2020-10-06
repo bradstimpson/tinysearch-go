@@ -14,28 +14,27 @@ const (
 )
 
 type Persistor interface {
-	SaveJSON(path string, v interface{}) error
-	SaveBIN(path string, v interface{}) error
-	SaveGOB(path string, v interface{}) error
-	SaveGO(path string, v interface{}) error
-	LoadJSON(path string, v interface{}) error
-	LoadBIN(path string, v interface{}) error
-	LoadGOB(path string, v interface{}) error
-	LoadGO(path string, v interface{}) error
-	setMarshaller(mtype int)
+	Save(path string, v interface{}) error
+	Load(path string, v interface{}) error
+	SetMarshaller(mtype int)
 }
 
 type persistor struct {
+	mtype     int
 	lock      sync.Mutex
 	Marshal   func(v interface{}) (io.Reader, error)
 	Unmarshal func(r io.Reader, v interface{}) error
 }
 
-func NewPersistor() Persistor {
-	return &persistor{}
+//add mtype int
+func NewPersistor(mt int) Persistor {
+	return &persistor{
+		mtype: mt,
+	}
 }
 
-func (p *persistor) setMarshaller(mtype int) {
+// Independent of the constructor, change the marshaller on the fly
+func (p *persistor) SetMarshaller(mtype int) {
 	switch mtype {
 	case JSON:
 		p.Unmarshal = unmarshalJSON
@@ -53,29 +52,8 @@ func (p *persistor) setMarshaller(mtype int) {
 }
 
 // SaveJSON saves a JSON representation of v to the file at path.
-func (p *persistor) SaveJSON(path string, v interface{}) error {
-	p.setMarshaller(JSON)
-	err := save(p, path, v)
-	return err
-}
-
-// SaveBIN saves a binary representation of v to the file at path.
-func (p *persistor) SaveBIN(path string, v interface{}) error {
-	p.setMarshaller(BIN)
-	err := save(p, path, v)
-	return err
-}
-
-// SaveGOB saves a gob representation of v to the file at path.
-func (p *persistor) SaveGOB(path string, v interface{}) error {
-	p.setMarshaller(GOB)
-	err := save(p, path, v)
-	return err
-}
-
-// SaveGO saves a go template representation of v to the file at path
-func (p *persistor) SaveGO(path string, v interface{}) error {
-	p.setMarshaller(GO)
+func (p *persistor) Save(path string, v interface{}) error {
+	p.SetMarshaller(p.mtype)
 	err := save(p, path, v)
 	return err
 }
@@ -100,38 +78,8 @@ func save(p *persistor, path string, v interface{}) error {
 // Load loads the file at path into v.
 // Use os.IsNotExist() to see if the returned error is due
 // to the file being missing.
-func (p *persistor) LoadJSON(path string, v interface{}) error {
-	p.setMarshaller(JSON)
-	f, err := load(p, path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return p.Unmarshal(f, v)
-}
-
-func (p *persistor) LoadGOB(path string, v interface{}) error {
-	p.setMarshaller(GOB)
-	f, err := load(p, path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return p.Unmarshal(f, v)
-}
-
-func (p *persistor) LoadBIN(path string, v interface{}) error {
-	p.setMarshaller(BIN)
-	f, err := load(p, path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return p.Unmarshal(f, v)
-}
-
-func (p *persistor) LoadGO(path string, v interface{}) error {
-	p.setMarshaller(GO)
+func (p *persistor) Load(path string, v interface{}) error {
+	p.SetMarshaller(p.mtype)
 	f, err := load(p, path)
 	if err != nil {
 		return err

@@ -70,8 +70,8 @@ func Download(cmd *cobra.Command, args []string) {
 		log.Errorf("error getting source domain %s: %v", SrcDomain, err)
 	}
 
-	p := persister.NewPersistor()
-	err = p.SaveJSON(filename, result)
+	p := persister.NewPersistor(persister.JSON)
+	err = p.Save(filename, result)
 	if err != nil {
 		log.Errorf("error saving corpus.json: %v", err)
 	}

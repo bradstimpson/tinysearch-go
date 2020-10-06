@@ -1,4 +1,6 @@
-# Check to stop make from complaining on make releave v0.0.0
+export GO111MODULE=on
+
+# Check to stop make from complaining on make release v0.0.0
 ifeq (release,$(firstword $(MAKECMDGOALS)))
   # use the rest as arguments for "run"
   RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
@@ -10,18 +12,21 @@ VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null 
 			cat $(CURDIR)/.version 2> /dev/null || echo v0)
 BIN      = $(CURDIR)/bin
 M = $(shell printf "\033[34;1m▶\033[0m")
+
 ARGS = `arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${arg:-${1}}`
-TEST=$(shell git status --porcelain | wc -l | tr -d '[:space:]')
-	# ifneq (, 0)
-	# 	$(error )
-	# endif
+GIT_STATUS=$(shell git status --porcelain | wc -l | tr -d '[:space:]')
+PKGS     = $(or $(PKG),$(shell env GO111MODULE=on go list ./...))
+TESTPKGS = $(shell env GO111MODULE=on go list -f \
+			'{{ if or .TestGoFiles .XTestGoFiles }}{{ .ImportPath }}{{ end }}' \
+			$(PKGS))
+
 .PHONY: test
 test:
-	go test ./... -v -cover
+	TEST_INT=true go test ./... -v -cover
 
 .PHONY: release
 release: ; $(info $(M) releasing…)	@ ## Releasing with version as arg (checks if repo clean)
-ifneq ($(TEST), 0)
+ifneq ($(GIT_STATUS), 0)
 	$(error "There are uncomitted changes - must be clean before release")
 endif
 	@echo $(RUN_ARGS) > .version
@@ -29,7 +34,6 @@ endif
 
 
 # Misc
-
 .PHONY: clean
 clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything in bin/ and tests/
 	@rm -rf $(BIN)
@@ -44,23 +48,21 @@ help: ; $(info $(M) This is what you can do with the Makefile…)	@ ## Helping y
 version: ; @ ## Returns the version of the git repository 
 	@echo $(VERSION)
 
+.PHONY: lint
+lint: ; $(info $(M) running golint…) @ ## Run golint
+	golint -set_exit_status $(PKGS)
+	golangci-lint run
+
+.PHONY: fmt
+fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
+	gofmt $(PKGS)
+
 # MODULE   = $(shell env GO111MODULE=on $(GO) list -m)
 # DATE    ?= $(shell date +%FT%T%z)
-# VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null || \
-# 			cat $(CURDIR)/.version 2> /dev/null || echo v0)
-# PKGS     = $(or $(PKG),$(shell env GO111MODULE=on $(GO) list ./...))
-# TESTPKGS = $(shell env GO111MODULE=on $(GO) list -f \
-# 			'{{ if or .TestGoFiles .XTestGoFiles }}{{ .ImportPath }}{{ end }}' \
-# 			$(PKGS))
-
-
-# GO      = go
 # TIMEOUT = 15
-# V = 0
-# Q = $(if $(filter 1,$V),,@)
 
 
-# export GO111MODULE=on
+
 
 # .PHONY: all
 # all: fmt lint | $(BIN) ; $(info $(M) building executable…) @ ## Build program binary
@@ -127,10 +129,3 @@ version: ; @ ## Returns the version of the git repository
 # 	$Q $(GO) tool cover -html=$(COVERAGE_PROFILE) -o $(COVERAGE_HTML)
 # 	$Q $(GOCOV) convert $(COVERAGE_PROFILE) | $(GOCOVXML) > $(COVERAGE_XML)
 
-# .PHONY: lint
-# lint: | $(GOLINT) ; $(info $(M) running golint…) @ ## Run golint
-# 	$Q $(GOLINT) -set_exit_status $(PKGS)
-
-# .PHONY: fmt
-# fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
-# 	$Q $(GO) fmt $(PKGS)
