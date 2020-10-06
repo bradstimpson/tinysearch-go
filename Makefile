@@ -18,7 +18,15 @@ test:
 
 .PHONY: release
 release:
-	ifneq ($(shell git diff-index --quiet HEAD; echo $$?), 0)
+
+	# @status=$$(git status --porcelain); \
+	# if test "x$${status}" = x; then \
+	# 	git branch -f deployment; \
+	# 	git push origin deployment; \
+	# else \
+	# 	echo Working directory is dirty >&2; \
+	# fi
+	ifneq ($(shell git diff-index --quiet HEAD | wc -l), 0)
 		$(error "There are uncomitted changes - must be clean before release")
 	endif
 	@echo $(RUN_ARGS) > .version
