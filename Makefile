@@ -26,7 +26,7 @@ release:
 	# else \
 	# 	echo Working directory is dirty >&2; \
 	# fi
-	ifneq ($(shell git diff-index --quiet HEAD | wc -l), 0)
+	ifneq ($(shell git status --porcelain | wc -l), 0)
 		$(error "There are uncomitted changes - must be clean before release")
 	endif
 	@echo $(RUN_ARGS) > .version
