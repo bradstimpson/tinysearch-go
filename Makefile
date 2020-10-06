@@ -18,7 +18,7 @@ test:
 
 .PHONY: release
 release:
-	ifneq ($(shell git diff --stat), 0)
+	ifneq ($(shell git diff-index --quiet HEAD), 0)
 		$(error "There are uncomitted changes - must be clean before release")
 	endif
 	@echo $(RUN_ARGS) > .version
