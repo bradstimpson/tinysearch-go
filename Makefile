@@ -1,10 +1,45 @@
+# Check to stop make from complaining on make releave v0.0.0
+ifeq (release,$(firstword $(MAKECMDGOALS)))
+  # use the rest as arguments for "run"
+  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(RUN_ARGS):;@:)
+endif
+
+VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null || \
+			cat $(CURDIR)/.version 2> /dev/null || echo v0)
+BIN      = $(CURDIR)/bin
+M = $(shell printf "\033[34;1m▶\033[0m")
+ARGS = `arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${arg:-${1}}`
+
 .PHONY: test
 test:
 	go test ./... -v -cover
 
+.PHONY: release
+release:
+	ifneq ($(shell git diff-index --quiet HEAD; echo $$?), 0)
+		$(error "There are uncomitted changes - must be clean before release")
+	endif
+	@echo $(RUN_ARGS) > .version
+	# gorelease
+
+
+# Misc
+
+.PHONY: clean
+clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything
+	@rm -rf $(BIN)
+	@rm -rf test/tests.* test/coverage.*
+
+.PHONY: help
+help:
+	@grep -hE '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-17s\033[0m %s\n", $$1, $$2}'
+
 .PHONY: version
 version:
-	gorelease
+	@echo $(VERSION)
 
 # MODULE   = $(shell env GO111MODULE=on $(GO) list -m)
 # DATE    ?= $(shell date +%FT%T%z)
@@ -14,13 +49,13 @@ version:
 # TESTPKGS = $(shell env GO111MODULE=on $(GO) list -f \
 # 			'{{ if or .TestGoFiles .XTestGoFiles }}{{ .ImportPath }}{{ end }}' \
 # 			$(PKGS))
-# BIN      = $(CURDIR)/bin
+
 
 # GO      = go
 # TIMEOUT = 15
 # V = 0
 # Q = $(if $(filter 1,$V),,@)
-# M = $(shell printf "\033[34;1m▶\033[0m")
+
 
 # export GO111MODULE=on
 
@@ -96,19 +131,3 @@ version:
 # .PHONY: fmt
 # fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
 # 	$Q $(GO) fmt $(PKGS)
-
-# # Misc
-
-# .PHONY: clean
-# clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything
-# 	@rm -rf $(BIN)
-# 	@rm -rf test/tests.* test/coverage.*
-
-# .PHONY: help
-# help:
-# 	@grep -hE '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-# 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-17s\033[0m %s\n", $$1, $$2}'
-
-# .PHONY: version
-# version:
-# 	@echo $(VERSION)
