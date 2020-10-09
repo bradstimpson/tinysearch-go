@@ -5,36 +5,36 @@ type Marshaler interface {
 }
 
 type Unmarshaler interface {
-	Unmarshal([]byte) error
+	Unmarshal([]byte, interface{}) error
 }
 
-type CustomEncoder interface {
-	Encode(*Encoder) error
-}
+// type Encoder interface {
+// 	Encode(*Encoder) error
+// }
 
-type CustomDecoder interface {
-	Decode(*Decoder) error
-}
+// type Decoder interface {
+// 	Decode(*Decoder) error
+// }
 
 //------------------------------------------------------------------------------
 
 type RawMessage []byte
 
-var _ CustomEncoder = (RawMessage)(nil)
-var _ CustomDecoder = (*RawMessage)(nil)
+// var _ CustomEncoder = (RawMessage)(nil)
+// var _ CustomDecoder = (*RawMessage)(nil)
 
-func (m RawMessage) Encode(enc *Encoder) error {
-	return enc.write(m)
-}
+// func (m RawMessage) Encode(enc *Encoder) error {
+// 	return enc.write(m)
+// }
 
-func (m *RawMessage) Decode(dec *Decoder) error {
-	msg, err := dec.Decode()
-	if err != nil {
-		return err
-	}
-	*m = msg
-	return nil
-}
+// func (m *RawMessage) Decode(dec *Decoder) error {
+// 	msg, err := dec.Decode()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	*m = msg
+// 	return nil
+// }
 
 // f, err := os.OpenFile("../../build/index.bin", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 // if err != nil {

@@ -11,6 +11,8 @@ const (
 	Bool    Code = 0xc4
 	Float64 Code = 0xc5
 	Str     Code = 0xc6
+	Struct  Code = 0xc7
+	Map     Code = 0xc8
 
 	Uint8       Code = 0xd0
 	ArrayUint8  Code = 0xd1
