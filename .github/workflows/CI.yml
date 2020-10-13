@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: ['1.14', '1.15']
+    env:
+      GOFLAGS: -mod=readonly
+
+    services:
+      wordpress:
+        image: kishitat/wordpress-all-in-one:latest
+        ports:
+          - 8080
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2-beta
+        with:
+          stable: 'false'
+          go-version: ${{ matrix.go }}
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.coverprofile -covermode=atomic -tags integration ./...
+
+      # - name: Upload coverage
+      #   uses: codecov/codecov-action@v1
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     file: coverage.coverprofile
