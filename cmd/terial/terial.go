@@ -20,6 +20,20 @@ type Unmarshaler interface {
 
 type RawMessage []byte
 
+type BaseType struct {
+	b    bool
+	f    float64
+	s    string
+	u8   uint8
+	au8  []uint8
+	u64  uint64
+	au64 []uint64
+	i64  int64
+	ai64 []int64
+	by   byte
+	aby  []byte
+}
+
 // var _ CustomEncoder = (RawMessage)(nil)
 // var _ CustomDecoder = (*RawMessage)(nil)
 

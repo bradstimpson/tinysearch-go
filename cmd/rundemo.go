@@ -31,13 +31,14 @@ var g bool
 var rundemoCmd = &cobra.Command{
 	Use:   "rundemo",
 	Short: "Run the demo server to test the generated wasm files",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := os.Getwd()
 		if err != nil {
 			log.Error(err)
 		}
 		log.Infof("Running the dev server port: %v for the demo with directory %v", p, path+"/assets")
-		server.Run(":"+strconv.Itoa(p), g, path+"/assets")
+		err = server.Run(":"+strconv.Itoa(p), g, path+"/assets", true)
+		return err
 	},
 }
 

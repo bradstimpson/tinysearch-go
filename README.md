@@ -188,10 +188,10 @@ The header is always a fixed size (112bit) and is never compressed.
 
 #### Body
 
-Each variable encoded in the body is in the ASN.1 TLV+EOC format and it is assumed that whatever goes into the body is a struct format:
+Each variable encoded in the body is in an ASN.1 'like' TLNV+EOC format and it is assumed that whatever goes into the body is a `struct` or `map[string]` format:
 
 ```bash
-Body Variable = <type-code(8bit)><length (int64)><value><4 x end-of-content-octet (32bit)>
+Body Variable = <type-code(8bit)><length (int64)><value><name (string)><2 x end-of-content-octet (32bit)>
 ```
 
 For the type-codes, we adopt a similar approach to Msgpack, the length is byteslice length, the value is the actual data to be encoded and the end-of-content octet.  Here are the codes used:

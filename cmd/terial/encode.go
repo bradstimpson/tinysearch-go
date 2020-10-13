@@ -2,8 +2,11 @@ package terial
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
+	"math"
+	"strconv"
 )
 
 // type writer interface {
@@ -24,20 +27,6 @@ type Encoder struct {
 // 	st struct
 // 	mp map[string]
 // }
-
-type BaseType struct {
-	b    bool
-	f    float64
-	s    string
-	u8   uint8
-	au8  []uint8
-	u64  uint64
-	au64 []uint64
-	i64  int64
-	ai64 []int64
-	by   byte
-	aby  []byte
-}
 
 // Marshal takes the interface and converts it into a format
 // ready for encoding
@@ -79,11 +68,17 @@ func (enc *Encoder) Encode(v interface{}) error {
 	// } else {
 	bt := make(map[string]BaseType)
 	for key, val := range enc.flds {
+		enc.body = append(enc.body, byte(val))
 		switch val {
 		case Str:
 			bt[key] = BaseType{s: v.(string)}
+			newfield := []byte(bt[key].s)
+			enc.body = append(enc.body, newfield...)
 		case Float64:
 			bt[key] = BaseType{f: v.(float64)}
+			newbuf := make([]byte, binary.MaxVarintLen64-2)
+			binary.BigEndian.PutUint64(newbuf, math.Float64bits(bt[key].f))
+			enc.body = append(enc.body, newbuf...)
 		case Bool:
 			bt[key] = BaseType{b: v.(bool)}
 		case Uint8:
@@ -103,17 +98,12 @@ func (enc *Encoder) Encode(v interface{}) error {
 		case ArrayByte:
 			bt[key] = BaseType{aby: v.([]byte)}
 		}
-		fmt.Println("did this display", val)
+		fmt.Printf("the input value type: 0x%02x\n", val)
 	}
-	// 	value := v.(string)
-	// }
 
 	//build the header
 
 	//build the body
-	for _, val := range bt {
-		enc.body = []byte(val.s)
-	}
 
 	enc.buf = new(bytes.Buffer)
 	enc.buf.Reset()
@@ -147,3 +137,14 @@ func (enc *Encoder) getWrapper() string {
 // 	_, err := e.w.Write(b)
 // 	return err
 // }
+
+func dec2hex(dec int) string {
+	color := dec * 255 / 100
+	return fmt.Sprintf("%02x", color)
+}
+
+func hex2dec(hex string) int64 {
+	dec, _ := strconv.ParseInt("0x"+hex, 0, 16)
+	dec = dec * 100 / 255
+	return dec
+}

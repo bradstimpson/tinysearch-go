@@ -22,7 +22,7 @@ TESTPKGS = $(shell env GO111MODULE=on go list -f \
 
 .PHONY: test
 test:
-	TEST_INT=true go test ./... -v -cover
+	go test ./... -v -cover -tags=integration
 
 .PHONY: release
 release: ; $(info $(M) releasing…)	@ ## Releasing with version as arg (checks if repo clean)
