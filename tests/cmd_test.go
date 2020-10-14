@@ -1,6 +1,6 @@
 // +build integration
 
-package cmd_test
+package tests
 
 import (
 	"testing"

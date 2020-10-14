@@ -1,3 +1,5 @@
+// Package cmd root - this is the base command used mainly to setup
+// the configuration and kick-off the tool.
 /*
 Copyright © 2020 Brad Stimpson <brad.stimpson@gmail.com>
 
@@ -26,13 +28,28 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
+// SrcDomain is the source domain to retrieve the corpus
 var SrcDomain string
+
+// RootDomain is the domain to append to all outgoing URLs
 var RootDomain string
+
+// Verbose is the log level
 var Verbose string = "warning"
+
+// DefaultConfigName is the default configuration file name (appended with yml)
 var DefaultConfigName string = ".tinysearch"
+
+// DefaultConfigPath is the default path to find the config
 var DefaultConfigPath string = "."
+
+// internal variables
+var cfgFile string
+
+// DefaultSrcName is the name to look for in the config files for the source domain
 var DefaultSrcName string = "SrcDomain"
+
+// DefaultRootName is the name to look for in the config files for the root domain
 var DefaultRootName string = "RootDomain"
 
 // rootCmd represents the base command when called without any subcommands
@@ -57,6 +74,7 @@ Calling tinysearch directly without a subcommand will search the parsed index.`,
 	},
 }
 
+// Execute is used by cobra to kick-off the CLI
 func Execute() {
 	log.Debug("Running the main execute function with log level: ", Verbose, "\n")
 	if err := rootCmd.Execute(); err != nil {
@@ -105,7 +123,11 @@ func initConfig() {
 		viper.SetEnvPrefix("tiny")
 		viper.AutomaticEnv()
 
+		//
+
 		if viper.GetString(DefaultSrcName) != "" && viper.GetString(DefaultRootName) != "" {
+
+			//
 			SrcDomain = viper.GetString(DefaultSrcName)
 			RootDomain = viper.GetString(DefaultRootName)
 			log.Info("Using environment variables for necessary URLs: TINY_SRCDOMAIN and TINY_ROOTDOMAIN")
@@ -123,6 +145,8 @@ func initConfig() {
 			// If a config file is found, read it in.
 			if err := viper.ReadInConfig(); err == nil {
 				log.Info("Using config file for necessary URLs:", viper.ConfigFileUsed())
+
+				//
 				SrcDomain = viper.GetString(DefaultSrcName)
 				RootDomain = viper.GetString(DefaultRootName)
 			}

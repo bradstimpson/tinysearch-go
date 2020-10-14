@@ -116,7 +116,7 @@ func TestUnmarshalWP(t *testing.T) {
 	assert.Nil(t, err1)
 
 	var p Posts
-	err2 := p.UnmarshalWP(buf.Bytes())
+	err2 := p.unmarshalWP(buf.Bytes())
 	assert.Nil(t, err2)
 	assert.Equal(t, "Test1 Title", p[0].Title)
 }

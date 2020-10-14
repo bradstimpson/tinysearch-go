@@ -1,3 +1,5 @@
+// Package cmd rundemo - this is used to run the demo system mainly
+// for testing and evaluation purposes.
 /*
 Copyright © 2020 Brad Stimpson <brad.stimpson@gmail.com>
 

@@ -86,8 +86,8 @@ func marshalGO(v interface{}) (io.Reader, error) {
 		return nil, err
 	}
 	// small fix for running tests and normal mode
-	if strings.HasSuffix(dir, "cmd") {
-		dir = dir + "/persister"
+	if strings.HasSuffix(dir, "tests") {
+		dir = strings.TrimSuffix(dir, "tests") + "cmd/persister"
 	}
 
 	var b bytes.Buffer

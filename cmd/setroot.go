@@ -1,3 +1,5 @@
+// Package cmd setroot - this is a convenience function to set the
+// root domain used in the output URLs
 /*
 Copyright © 2020 Brad Stimpson <brad.stimpson@gmail.com>
 

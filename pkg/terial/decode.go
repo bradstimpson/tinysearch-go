@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-// A Decoder reads and decodes values from an input stream.
+// Decoder reads and decodes values from an input stream.
 type Decoder struct {
 	r    io.Reader
 	wrpr Code
@@ -26,15 +26,18 @@ type Decoder struct {
 // 	return msg, nil
 // }
 
+// Unmarshal TODO
 func Unmarshal(data []byte, v interface{}) error {
 	return nil
 }
 
+// NewDecoder take the reader and the input format to decode the content with
+// no reflection
 func NewDecoder(r io.Reader, wrapper Code, fields map[string]Code) *Decoder {
 	return &Decoder{r: r, wrpr: wrapper, flds: fields}
 }
 
-// returns an array of codes with a 1:1 mapping to the interface
+// Decode returns an array of codes with a 1:1 mapping to the interface
 // to avoid reflection.  Assume a simple return structure of either
 // struct with embedded fields
 // (that are simple types) or a map which points to simple types

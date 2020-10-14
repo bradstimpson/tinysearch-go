@@ -1,3 +1,6 @@
+// Package cmd save - this is to save the binary version of the index
+// to a go file using go templates. Can enable gzip on the none tinygo
+// version.
 /*
 Copyright © 2020 Brad Stimpson <brad.stimpson@gmail.com>
 
@@ -30,6 +33,7 @@ var (
 	finalout string = "build/index.go"
 )
 
+// NewSaveCmd represents the save cobra command
 func NewSaveCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "save",
@@ -47,10 +51,14 @@ func init() {
 	rootCmd.AddCommand(saveCmd)
 }
 
+// SetGzipFlag is used primarily in testing to programatically change whether the
+// save system will enable gzip compression of the binary.
 func SetGzipFlag() {
 	gz = true
 }
 
+// Save is called by NewSaveCmd and is exported for testing
+// purposes.  The args are passed via the command line.
 func Save(cmd *cobra.Command, args []string) {
 	log.Debugf("Saving the dictionary to an index file for embedding with log level: %v", Verbose)
 

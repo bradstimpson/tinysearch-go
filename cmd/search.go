@@ -1,3 +1,5 @@
+// Package cmd search - this is a convenience function to search the
+// generated index files to evaluate the search quality.
 /*
 Copyright © 2020 Brad Stimpson <brad.stimpson@gmail.com>
 
@@ -32,19 +34,22 @@ var (
 	nostd      bool   = false
 )
 
+// Data is the expected struct format after by gobbered
 type Data struct {
 	F [][]byte
 	U []string
 	N []string
 }
 
+// Result is the expect format of the output json for search
 type Result struct {
 	Name string `json:"name"`
-	Url  string `json:"url"`
+	URL  string `json:"url"`
 }
 
 var data Data
 
+// NewSearchCmd is the search cobra command
 func NewSearchCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "search",
@@ -60,10 +65,14 @@ func init() {
 	rootCmd.AddCommand(searchCmd)
 }
 
+// DisableOutput is used primarily in testing to programatically change whether
+// to output the results of the search to the screen
 func DisableOutput() {
 	nostd = true
 }
 
+// Search is called by NewSearchCmd and is exported for testing
+// purposes.  The args are passed via the command line.
 func Search(cmd *cobra.Command, args []string) {
 	//*TODO* Update with the new serializer option
 	log.Debug("Search subcommand run with log level: ", Verbose, "\n")
@@ -97,7 +106,7 @@ func Search(cmd *cobra.Command, args []string) {
 			}
 			found = append(found, Result{
 				Name: names[i],
-				Url:  urls[i],
+				URL:  urls[i],
 			})
 		}
 	}

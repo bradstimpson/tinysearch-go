@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+    wordpress:
+      build:
+        context: ./wordpress
+        dockerfile: Dockerfile
+      ports:
+          - 8080:8080
+
+    hugo:
+      image: klakegg/hugo:0.76.3
+      command: server
+      volumes:
+        - ".:/hugo"
+      ports:
+        - "1313:1313"

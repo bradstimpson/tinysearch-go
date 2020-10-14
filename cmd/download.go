@@ -1,3 +1,5 @@
+// Package cmd download - this will download the corpus.json
+// from the specified system.
 /*
 Copyright © 2020 Brad Stimpson <brad.stimpson@gmail.com>
 
@@ -31,6 +33,7 @@ var (
 	filename string = "build/corpus.json"
 )
 
+// NewDownloadCmd is the cobra command for downloading the corpus
 func NewDownloadCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "download",
@@ -49,10 +52,14 @@ func init() {
 	rootCmd.AddCommand(downloadCmd)
 }
 
+// UpdateSrcDomain is used primarily in testing to programatically change the source
+// domain to download from.
 func UpdateSrcDomain(domain string) {
 	SrcDomain = domain
 }
 
+// Download is called by NewDownloadCmd and is exported for testing
+// purposes.  The args are passed via the command line.
 func Download(cmd *cobra.Command, args []string) {
 	log.Debugf("Downloading from %s with log level: %v", SrcDomain, Verbose)
 

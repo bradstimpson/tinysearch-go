@@ -13,6 +13,8 @@ import (
 // 	io.Writer
 // 	WriteByte(byte) error
 // }
+
+// Encoder is the default struct used by the system
 type Encoder struct {
 	w      io.Writer
 	wrpr   Code
@@ -55,6 +57,7 @@ func NewEncoder(w io.Writer, wrapper Code, fields map[string]Code) *Encoder {
 	return &Encoder{w: w, wrpr: wrapper, flds: fields}
 }
 
+// Encode will take an interface and encode it to the terial format
 func (enc *Encoder) Encode(v interface{}) error {
 	if enc.err != nil {
 		return enc.err

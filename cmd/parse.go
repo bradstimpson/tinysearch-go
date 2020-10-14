@@ -1,3 +1,5 @@
+// Package cmd parse - this will parse the corpus.json
+// and output the binary file.
 /*
 Copyright © 2020 Brad Stimpson <brad.stimpson@gmail.com>
 
@@ -31,7 +33,7 @@ var (
 	out string = "build/index.bin"
 )
 
-// parseCmd represents the parse command
+// NewParseCmd represents the parse cobra command
 func NewParseCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "parse",
@@ -43,6 +45,8 @@ directory with filenames corpus.json and index.bin.`,
 	}
 }
 
+// UpdateRootDomain is used primarily in testing to programatically change the root
+// domain to add to the output link URLs.
 func UpdateRootDomain(domain string) {
 	RootDomain = domain
 }
@@ -55,18 +59,26 @@ func init() {
 	rootCmd.AddCommand(parseCmd)
 }
 
+// DisableStopwords is used primarily in testing to programatically disable removing
+// stopwords from the output bin.
 func DisableStopwords() {
 	sw = false
 }
 
+// DisableAlphaNumRemoval is used primarily in testing to programatically disable removing
+// alpha numeric characters from the output bin.
 func DisableAlphaNumRemoval() {
 	an = false
 }
 
+// DisableStemming is used primarily in testing to programatically disable removing
+// stemming words from the output bin.
 func DisableStemming() {
 	st = false
 }
 
+// Parse is called by NewParseCmd and is exported for testing
+// purposes.  The args are passed via the command line.
 func Parse(cmd *cobra.Command, args []string) {
 	log.Debugf("Parsing with root domain %s with log level: %v", RootDomain, Verbose)
 

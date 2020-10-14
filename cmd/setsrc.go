@@ -1,3 +1,5 @@
+// Package cmd setsrc - this is a convenience function to set the
+// source domain of the input corpus to be used.
 /*
 Copyright © 2020 Brad Stimpson <brad.stimpson@gmail.com>
 

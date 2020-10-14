@@ -1,3 +1,5 @@
+// Package cmd build - this will build the final tiny.wasm
+// and copy over all dependencies.
 /*
 Copyright © 2020 Brad Stimpson <brad.stimpson@gmail.com>
 
@@ -30,6 +32,7 @@ var (
 	outfile string = "tiny.wasm"
 )
 
+// NewBuildCmd is the cobra command for building the wasm
 func NewBuildCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "build",
@@ -37,6 +40,7 @@ func NewBuildCmd() *cobra.Command {
 		Run:   Build,
 	}
 }
+
 func init() {
 	buildCmd := NewBuildCmd()
 	buildCmd.PersistentFlags().BoolVarP(&tiny, "tinygo", "y", false, "enable the tinygo optimization")
@@ -45,6 +49,8 @@ func init() {
 	rootCmd.AddCommand(buildCmd)
 }
 
+// Build is called by NewBuildCmd and is exported for testing
+// purposes.  The args are passed via the command line.
 func Build(cmd *cobra.Command, args []string) {
 	log.Debugf("Building the final wasm file with log level: %v", Verbose)
 

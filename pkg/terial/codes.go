@@ -1,8 +1,10 @@
 package terial
 
+// Code is an alias for a byte
 type Code byte
 
 const (
+	// EOC is the end of content code
 	EOC   Code = 0xFF
 	Nil   Code = 0xc0
 	False Code = 0xc2
@@ -24,10 +26,16 @@ const (
 	ArrayByte   Code = 0xd7
 )
 
+// EncFmtID is the format ID used by terial at the start of the
+// encoding which in ASCII is equivalent to TER1
 const EncFmtID uint32 = 0x54455231
 
+// Versions of the encoding
 const (
+	// V1 is raw
 	V1 = 1 << iota
+	// V2 is gzip
 	V2
+	// V3 is zstd
 	V3
 )

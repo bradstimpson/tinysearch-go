@@ -1,9 +1,11 @@
 package terial
 
+// Marshaler TODO
 type Marshaler interface {
 	Marshal() ([]byte, error)
 }
 
+// Unmarshaler TODO
 type Unmarshaler interface {
 	Unmarshal([]byte, interface{}) error
 }
@@ -18,8 +20,10 @@ type Unmarshaler interface {
 
 //------------------------------------------------------------------------------
 
+// RawMessage slice of bytes alias
 type RawMessage []byte
 
+// BaseType are the types we can use
 type BaseType struct {
 	b    bool
 	f    float64

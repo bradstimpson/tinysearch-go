@@ -12,18 +12,15 @@ VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null 
 			cat $(CURDIR)/.version 2> /dev/null || echo v0)
 BIN      = $(CURDIR)/bin
 M = $(shell printf "\033[34;1m▶\033[0m")
-
+TIMEOUT = 15
 ARGS = `arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${arg:-${1}}`
 GIT_STATUS=$(shell git status --porcelain | wc -l | tr -d '[:space:]')
-PKGS     = $(or $(PKG),$(shell env GO111MODULE=on go list ./...))
+PKGS     = $(or $(PKG),$(shell env GO111MODULE=on go list -f {{.Dir}} ./{cmd,pkg}/...))
 TESTPKGS = $(shell env GO111MODULE=on go list -f \
 			'{{ if or .TestGoFiles .XTestGoFiles }}{{ .ImportPath }}{{ end }}' \
 			$(PKGS))
 
-.PHONY: test
-test:
-	go test ./... -v -cover -tags=integration
-
+## Misc
 .PHONY: release
 release: ; $(info $(M) releasing…)	@ ## Releasing with version as arg (checks if repo clean)
 ifneq ($(GIT_STATUS), 0)
@@ -32,8 +29,6 @@ endif
 	@echo $(RUN_ARGS) > .version
 	gorelease
 
-
-# Misc
 .PHONY: clean
 clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything in bin/ and tests/
 	@rm -rf $(BIN)
@@ -55,14 +50,14 @@ lint: ; $(info $(M) running golint…) @ ## Run golint
 
 .PHONY: fmt
 fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
-	gofmt $(PKGS)
+	gofmt -l $(PKGS)
 
 # MODULE   = $(shell env GO111MODULE=on $(GO) list -m)
 # DATE    ?= $(shell date +%FT%T%z)
-# TIMEOUT = 15
 
 
 
+## Build All
 
 # .PHONY: all
 # all: fmt lint | $(BIN) ; $(info $(M) building executable…) @ ## Build program binary
@@ -71,7 +66,7 @@ fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
 # 		-ldflags '-X $(MODULE)/cmd.Version=$(VERSION) -X $(MODULE)/cmd.BuildDate=$(DATE)' \
 # 		-o $(BIN)/$(basename $(MODULE)) main.go
 
-# # Tools
+## Tools
 
 # $(BIN):
 # 	@mkdir -p $@
@@ -93,9 +88,22 @@ fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
 # GO2XUNIT = $(BIN)/go2xunit
 # $(BIN)/go2xunit: PACKAGE=github.com/tebeka/go2xunit
 
-# # Tests
+## Tests
+TEST_TARGETS := test-default test-bench test-verbose test-race
+.PHONY: $(TEST_TARGETS) test-xml check tests
+test-default: ARGS=-v -cover -tags=integration			## Run verbose with coverage and integration
+test-bench:   ARGS=-run=__absolutelynothing__ -bench=. 	## Run benchmarks
+test-verbose: ARGS=-v -cover         					## Run tests in verbose mode with coverage reporting
+test-race:    ARGS=-race         						## Run tests with race detector
+$(TEST_TARGETS): NAME=$(MAKECMDGOALS:test-%=%)
+$(TEST_TARGETS): tests
+check tests: fmt lint ; $(info $(M) running $(NAME:%=% )tests…) @ ## Run tests
+	go test ./{cmd,pkg,tests}/... $(ARGS)
 
-# TEST_TARGETS := test-default test-bench test-short test-verbose test-race
+.PHONY: test
+test: ; $(info $(M) running fast tests…) @ ## Run fast tests no lint fmt integration
+	go test ./{cmd,pkg}/... -short
+
 # .PHONY: $(TEST_TARGETS) test-xml check test tests
 # test-bench:   ARGS=-run=__absolutelynothing__ -bench=. ## Run benchmarks
 # test-short:   ARGS=-short        ## Run only short tests
