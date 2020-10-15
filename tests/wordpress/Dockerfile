@@ -42,12 +42,12 @@ RUN sed -i -e "s/database_name_here/db_wordpress/" /var/www/html/wp-config.php &
 
 #ADD startup shells
 RUN mkdir /startup/
-COPY startup /startup/
+COPY startup/* /startup/
 RUN chmod -R a+rw /startup && \
     chmod a+x /startup/*.sh
 
 USER 1999
 
 EXPOSE 8080
-
+# CMD tail -f /dev/null
 ENTRYPOINT /startup/start.sh
