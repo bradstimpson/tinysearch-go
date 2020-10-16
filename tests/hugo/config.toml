@@ -1,0 +1,7 @@
+baseURL = "http://example.org/"
+languageCode = "en-us"
+title = "Hugo Tinysearch Test"
+theme = "ananke"
+
+[outputs]
+    home = ["html","rss","json"]

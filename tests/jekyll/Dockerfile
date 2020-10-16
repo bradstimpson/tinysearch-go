@@ -13,7 +13,10 @@ RUN jekyll new test
 
 WORKDIR /srv/jekyll/test/
 
-RUN gem install public_suffix -v '4.0.6' --source 'https://rubygems.org/'
+RUN rm Gemfile _config.yml
+ADD Gemfile _config.yml sindex.js sindex.json /srv/jekyll/test/
+
+RUN gem install public_suffix -v '4.0.6' --source 'https://rubygems.org/' && gem install jekyll-admin
 
 RUN bundle install && jekyll build
 
