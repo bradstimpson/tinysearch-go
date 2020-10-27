@@ -102,8 +102,8 @@ func TestStart(t *testing.T) {
 				Addr:    ":9091",
 				Handler: http.HandlerFunc(fileHandler),
 			},
-			gzon:    c.gzip,
-			Running: make(chan struct{}),
+			gzon: c.gzip,
+			// Running: make(chan struct{}),
 		}
 		serviceRunning := make(chan struct{})
 		serviceDone := make(chan struct{})

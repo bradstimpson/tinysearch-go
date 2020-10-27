@@ -7,12 +7,23 @@ import (
 )
 
 const (
+	// JSON indicates working with JSON files
 	JSON = iota
+
+	// BIN indicates working with Binary files
 	BIN
+
+	// GOB indicates working with GoLang GOB files
 	GOB
+
+	// GO indicates working with our custom GO templated files
 	GO
 )
 
+// Persistor interface with the following methods
+// - Save takes a path to the file (with filename) and target interface v to save
+// - Load takes a path to the file (with filename) and target output variable v
+// - SetMarshaller tells the persistor what filetype it is working with
 type Persistor interface {
 	Save(path string, v interface{}) error
 	Load(path string, v interface{}) error
@@ -26,7 +37,8 @@ type persistor struct {
 	Unmarshal func(r io.Reader, v interface{}) error
 }
 
-//add mtype int
+// NewPersistor constructor that take an integer type to indicate what
+// marshaller we are working with
 func NewPersistor(mt int) Persistor {
 	return &persistor{
 		mtype: mt,

@@ -20,13 +20,21 @@ import (
 var startWords = [...]string{"http", "src", "srcset", "style", "class", "href", "id", "sizes", "height", "width", "loading", "aria"}
 
 var (
-	Stem bool = true
-	Rmsw bool = true
-	Rman bool = true
+	stem bool = true
+	rmsw bool = true
+	rman bool = true
 )
 
+// Parser is the interface representing the methods needed to build
+// a parser:
+// - Parse takes a domain string and three boolean representing to turn on/off
+// stemming, removing alpha-numerics, and removing stop-words
+// - Source opens the target filename and mutates the struct state by setting source
+// - Encode takes the source file and outputs the 2D slice of bytes, the slice of URLs
+// and slice of link names
+// - GetSource returns what source content has been set in the state
 type Parser interface {
-	Parse(domain string, stem bool, rman bool, rmsw bool) error
+	Parse(domain string, st bool, ran bool, rsw bool) error
 	Source(fileName string) error
 	Encode() ([][]byte, []string, []string)
 	GetSource() interface{}
@@ -39,6 +47,7 @@ type parser struct {
 	names   []string
 }
 
+// NewParser is the constructor which returns a parser struct
 func NewParser() Parser {
 	return &parser{}
 }
@@ -51,8 +60,8 @@ func NewParser() Parser {
 // 5. check if the word is a stopword (if on)
 // 6. stem the word (if on)
 // 7. finally, add the word
-func (p *parser) Parse(domain string, stem bool, rman bool, rmsw bool) error {
-	Stem, Rman, Rmsw = stem, rman, rmsw
+func (p *parser) Parse(domain string, st bool, ran bool, rsw bool) error {
+	stem, rman, rmsw = st, ran, rsw
 
 	titlePath, err1 := jp.ParseString("[*].title")
 	slugPath, err2 := jp.ParseString("[*].slug")
@@ -172,7 +181,7 @@ func stripHTMLTags(word string) string {
 }
 
 func stripAlphaAndUnescape(word string) string {
-	if !Rman {
+	if !rman {
 		return word
 	}
 	reg, _ := regexp.Compile("[^'a-zA-Z0-9]+")
@@ -180,7 +189,7 @@ func stripAlphaAndUnescape(word string) string {
 }
 
 func stemWord(word string) string {
-	if !Stem {
+	if !stem {
 		return word
 	}
 
@@ -210,7 +219,7 @@ func hasMultipleWords(word string) (bool, []string) {
 }
 
 func isStopword(word string) (bool, error) {
-	if !Rmsw {
+	if !rmsw {
 		return true, nil
 	}
 

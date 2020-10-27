@@ -12,9 +12,9 @@ type Decoder struct {
 	wrpr Code
 	flds map[string]Code
 	// s   io.ByteScanner
-	err    error
-	header []byte
-	body   []byte
+	err error
+	// header []byte
+	// body   []byte
 	buf    *bytes.Buffer
 	valbuf *bytes.Buffer
 }
@@ -60,35 +60,36 @@ func (dec *Decoder) Decode() (interface{}, error) {
 	}
 
 	for idx, val := range dec.buf.Bytes() {
-		if idx == 0 {
-			switch val {
-			case byte(Str):
-				fmt.Println("string found")
-			case byte(Float64):
-				fmt.Println("float64 found")
-			case byte(Bool):
-				fmt.Println("bool found")
-			case byte(Uint8):
-				fmt.Println("uint8 found")
-			case byte(Uint64):
-				fmt.Println("uint64 found")
-			case byte(Int64):
-				fmt.Println("int64 found")
-			case byte(Byte):
-				fmt.Println("byte found")
-			case byte(ArrayUint8):
-				fmt.Println("[]uint8 found")
-			case byte(ArrayUint64):
-				fmt.Println("[]uint64 found")
-			case byte(ArrayInt64):
-				fmt.Println("[]int64 found")
-			case byte(ArrayByte):
-				fmt.Println("[]byte found")
-			}
-			// fmt.Printf("the input value type: 0x%02x\n", val)
-		} else {
+		if idx != 0 {
 			dec.valbuf.WriteByte(val)
 		}
+
+		switch val {
+		case byte(Str):
+			fmt.Println("string found")
+		case byte(Float64):
+			fmt.Println("float64 found")
+		case byte(Bool):
+			fmt.Println("bool found")
+		case byte(Uint8):
+			fmt.Println("uint8 found")
+		case byte(Uint64):
+			fmt.Println("uint64 found")
+		case byte(Int64):
+			fmt.Println("int64 found")
+		case byte(Byte):
+			fmt.Println("byte found")
+		case byte(ArrayUint8):
+			fmt.Println("[]uint8 found")
+		case byte(ArrayUint64):
+			fmt.Println("[]uint64 found")
+		case byte(ArrayInt64):
+			fmt.Println("[]int64 found")
+		case byte(ArrayByte):
+			fmt.Println("[]byte found")
+		}
+		// fmt.Printf("the input value type: 0x%02x\n", val)
+
 	}
 	return dec.valbuf.String(), dec.err
 }

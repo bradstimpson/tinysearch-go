@@ -11,7 +11,7 @@ import (
 
 type Result struct {
 	Name string `json:"name"`
-	Url  string `json:"url"`
+	URL  string `json:"url"`
 }
 
 func TestRunParserSource(t *testing.T) {
@@ -43,7 +43,7 @@ func TestRunParser(t *testing.T) {
 			var jsonData []byte
 			jsonData, err := json.Marshal(Result{
 				Name: names[i],
-				Url:  urls[i],
+				URL:  urls[i],
 			})
 			assert.Nil(t, err)
 			found = append(found, string(jsonData))
@@ -55,6 +55,6 @@ func TestRunParser(t *testing.T) {
 	err = json.Unmarshal([]byte(found[1].(string)), &r1)
 	assert.Nil(t, err)
 
-	assert.Equal(t, "http://example.test/test1/", r0.Url)
-	assert.Equal(t, "http://example.test/test2/", r1.Url)
+	assert.Equal(t, "http://example.test/test1/", r0.URL)
+	assert.Equal(t, "http://example.test/test2/", r1.URL)
 }

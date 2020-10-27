@@ -29,7 +29,9 @@ Thank you, [contributors](https://github.com/bradstimpson/tinysearch-go/graphs/c
 ## Related Projects
 
 1. [Rust tinysearch github](https://github.com/tinysearch/tinysearch)
+2. [Jekyll REST API](https://github.com/riichard/jekyll-rest-api)
 
 ## Additional Reading
 
 1. [Endler.dev's write-up](https://endler.dev/2019/tinysearch)
+

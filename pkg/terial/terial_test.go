@@ -9,11 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type TerialTest struct {
-	buf *bytes.Buffer
-	enc *Encoder
-	dec *Decoder
-}
+// type TerialTest struct {
+// 	buf *bytes.Buffer
+// 	enc *Encoder
+// 	dec *Decoder
+// }
 
 func TestEncode(t *testing.T) {
 

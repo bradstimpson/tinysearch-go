@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"strconv"
 )
 
 // type writer interface {
@@ -16,13 +15,13 @@ import (
 
 // Encoder is the default struct used by the system
 type Encoder struct {
-	w      io.Writer
-	wrpr   Code
-	flds   map[string]Code
-	err    error
-	header []byte
-	body   []byte
-	buf    *bytes.Buffer
+	w    io.Writer
+	wrpr Code
+	flds map[string]Code
+	err  error
+	// header []byte
+	body []byte
+	buf  *bytes.Buffer
 }
 
 // type Wrapper struct {
@@ -118,18 +117,18 @@ func (enc *Encoder) Encode(v interface{}) error {
 	return enc.err
 }
 
-func (enc *Encoder) getWrapper() string {
-	// if enc.wrpr == Struct {
-	// 	return func() {
+// func (enc *Encoder) getWrapper() string {
+// 	// if enc.wrpr == Struct {
+// 	// 	return func() {
 
-	// 	}
-	// } else if enc.wrpr == Struct {
-	// 	return func() struct {
-	// 		return struct{}
-	// 	}
-	// }
-	return "nil"
-}
+// 	// 	}
+// 	// } else if enc.wrpr == Struct {
+// 	// 	return func() struct {
+// 	// 		return struct{}
+// 	// 	}
+// 	// }
+// 	return "nil"
+// }
 
 // Writer returns the Encoder's writer.
 // func (e *Encoder) Writer() io.Writer {
@@ -141,13 +140,13 @@ func (enc *Encoder) getWrapper() string {
 // 	return err
 // }
 
-func dec2hex(dec int) string {
-	color := dec * 255 / 100
-	return fmt.Sprintf("%02x", color)
-}
+// func dec2hex(dec int) string {
+// 	color := dec * 255 / 100
+// 	return fmt.Sprintf("%02x", color)
+// }
 
-func hex2dec(hex string) int64 {
-	dec, _ := strconv.ParseInt("0x"+hex, 0, 16)
-	dec = dec * 100 / 255
-	return dec
-}
+// func hex2dec(hex string) int64 {
+// 	dec, _ := strconv.ParseInt("0x"+hex, 0, 16)
+// 	dec = dec * 100 / 255
+// 	return dec
+// }

@@ -10,7 +10,8 @@ import (
 )
 
 func TestDownloadCmd(t *testing.T) {
-	cmd.UpdateSrcDomain("http://192.168.0.28:8009?rest_route=/wp/v2/posts&page=1&per_page=100")
+	// Jekyll API http://localhost:8890/sindex.json
+	cmd.UpdateSrcDomain("http://localhost:8888?rest_route=/wp/v2/posts&page=1&per_page=100")
 	cmd.Download(&cobra.Command{}, []string{"../build/corpus.json"})
 }
 

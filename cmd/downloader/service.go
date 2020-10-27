@@ -5,12 +5,15 @@ import (
 	"net/http"
 )
 
+// DLService is the interface representing the fetching mechanism
+// it returns channels for the response and errors
 type DLService interface {
 	Fetch(targetURL string) (<-chan *http.Response, <-chan error)
 }
 
 type fetchDLService struct{}
 
+// NewDLService is the constructor which returns the DLService
 func NewDLService() DLService {
 	return &fetchDLService{}
 }
